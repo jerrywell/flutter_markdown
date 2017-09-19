@@ -193,11 +193,15 @@ class MarkdownBuilder implements md.NodeVisitor {
         parent.children.add(new TextSpan(
           style: styleSheet.styles[tag],
           recognizer: recognizer,
-          children: current.children,
+          children: tag == 'a' ? null : current.children,
+          text: tag == 'a' ? _extractInlineElement(current) : null
         ));
       }
     }
   }
+
+  String _extractInlineElement(_InlineElement element)
+    => element.children.map((TextSpan span) => span.text).join(' ');
 
   Widget _buildImage(String src) {
     final List<String> parts = src.split('#');
