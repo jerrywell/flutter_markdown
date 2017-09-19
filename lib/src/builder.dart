@@ -4,7 +4,7 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
-import 'package:markdown/markdown.dart' as md;
+import 'package:markd/markdown.dart' as md;
 
 import 'style_sheet.dart';
 
