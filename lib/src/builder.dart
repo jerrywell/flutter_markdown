@@ -114,6 +114,12 @@ class MarkdownBuilder implements md.NodeVisitor {
     } else {
       _inlines.add(new _InlineElement());
     }
+
+    if (element.isEmpty) {
+      visitElementAfter(element);
+      return false;
+    }
+    
     return true;
   }
 
