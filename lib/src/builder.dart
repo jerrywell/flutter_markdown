@@ -53,6 +53,9 @@ abstract class MarkdownBuilderDelegate {
   ///
   /// The `styleSheet` is the value of [MarkdownBuilder.styleSheet].
   TextSpan formatText(MarkdownStyleSheet styleSheet, String code);
+
+  /// Give a change to do post processing for text
+  String textProcess(String text);
 }
 
 /// Builds a [Widget] tree from parsed Markdown.
@@ -98,8 +101,9 @@ class MarkdownBuilder implements md.NodeVisitor {
   void visitText(md.Text text) {
     if (_blocks.last.tag == null) // Don't allow text directly under the root.
       return;
+    final txt = delegate?.textProcess(text.text) ?? text.text;
     final TextSpan span = _blocks.last.tag == 'pre' ?
-      delegate.formatText(styleSheet, text.text) : new TextSpan(text: text.text);
+      delegate.formatText(styleSheet, txt) : new TextSpan(text: txt);
     _inlines.last.children.add(span);
   }
 
