@@ -27,7 +27,10 @@ abstract class SyntaxHighlighter { // ignore: one_member_abstracts
 typedef List<md.Node> MarkdownTextParser(String data);
 
 /// Provides a chance to post process text content.
-typedef String MarkdownTextProcessor(String text);
+typedef TextSpan MarkdownTextProcessor(String last, String lastSecond, String text);
+
+/// Provides a chance to post process text content.
+typedef Widget MarkdownElementWrapper(String previousTag, String currentTag, Widget child);
 
 /// A base class for widgets that parse and display Markdown.
 ///
@@ -50,7 +53,8 @@ abstract class MarkdownWidget extends StatefulWidget {
     this.syntaxHighlighter,
     this.onTapLink,
     this.textParser,
-    this.textProcessor
+    this.textProcessor,
+    this.elementWrapper
   }) : assert(data != null),
        super(key: key);
 
@@ -75,6 +79,9 @@ abstract class MarkdownWidget extends StatefulWidget {
 
   /// Called to process each markdown text and return
   final MarkdownTextProcessor textProcessor;
+
+  /// Called to return the wrapper of given child
+  final MarkdownElementWrapper elementWrapper;
 
   /// Subclasses should override this function to display the given children,
   /// which are the parsed representation of [data].
@@ -157,8 +164,13 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
   }
 
   @override
-  String textProcess(String text) {
-    return widget.textProcessor != null ? widget.textProcessor(text) : text;
+  TextSpan textProcess(String innerTag, String outerTag, String text) {
+    return widget.textProcessor != null ? widget.textProcessor(innerTag, outerTag, text) : new TextSpan(text: text);
+  }
+
+  @override
+  Widget elementWrapper(String innerTag, String outerTag, Widget child) {
+    return widget.elementWrapper != null ? widget.elementWrapper(innerTag, outerTag, child) : new TextSpan(child);
   }
 
   @override
@@ -184,6 +196,7 @@ class MarkdownBody extends MarkdownWidget {
     MarkdownTapLinkCallback onTapLink,
     MarkdownTextParser textParser,
     MarkdownTextProcessor textProcessor,
+    MarkdownElementWrapper elementWrapper,
   }) : super(
     key: key,
     data: data,
@@ -191,7 +204,8 @@ class MarkdownBody extends MarkdownWidget {
     syntaxHighlighter: syntaxHighlighter,
     onTapLink: onTapLink,
     textParser: textParser,
-    textProcessor: textProcessor
+    textProcessor: textProcessor,
+    elementWrapper: elementWrapper
   );
 
   @override
@@ -224,6 +238,7 @@ class Markdown extends MarkdownWidget {
     MarkdownTapLinkCallback onTapLink,
     MarkdownTextParser textParser,
     MarkdownTextProcessor textProcessor,
+    MarkdownElementWrapper elementWrapper,
     this.padding: const EdgeInsets.all(16.0),
   }) : super(
     key: key,
@@ -232,7 +247,8 @@ class Markdown extends MarkdownWidget {
     syntaxHighlighter: syntaxHighlighter,
     onTapLink: onTapLink,
     textParser: textParser,
-    textProcessor: textProcessor
+    textProcessor: textProcessor,
+    elementWrapper: elementWrapper
   );
 
   /// The amount of space by which to inset the children.

@@ -54,8 +54,11 @@ abstract class MarkdownBuilderDelegate {
   /// The `styleSheet` is the value of [MarkdownBuilder.styleSheet].
   TextSpan formatText(MarkdownStyleSheet styleSheet, String code);
 
-  /// Give a change to do post processing for text
-  String textProcess(String text);
+  /// Give a chance to do processing for text
+  TextSpan textProcess(String innerTag, String outerTag, String text);
+
+  /// Give a chance to add a wrapper of child
+  Widget elementWrapper(String innerTag, String outerTag, Widget child);
 }
 
 /// Builds a [Widget] tree from parsed Markdown.
@@ -101,10 +104,26 @@ class MarkdownBuilder implements md.NodeVisitor {
   void visitText(md.Text text) {
     if (_blocks.last.tag == null) // Don't allow text directly under the root.
       return;
-    final txt = delegate?.textProcess(text.text) ?? text.text;
-    final TextSpan span = _blocks.last.tag == 'pre' ?
-      delegate.formatText(styleSheet, txt) : new TextSpan(text: txt);
+
+    final elements = _extractElementsForTag();
+    final innerElement = elements[0];
+    final outerElement = elements[1];
+    final last = innerElement ?? outerElement ?? _blocks.last;
+
+    final textSpan = delegate.textProcess(innerElement?.tag, outerElement?.tag, text.text);
+    final TextSpan span = last.tag == 'pre' ?
+      delegate.formatText(styleSheet, text.text) : textSpan;
     _inlines.last.children.add(span);
+  }
+
+  /// return elements which are the most inner one and the most outer one in [_blocks]
+  List<_BlockElement> _extractElementsForTag() {
+    final length = _blocks.length;
+    // the most outer one is empty element, _blocks[0], we skip it.
+    final outerTag = length > 1 ? _blocks[1] : null;
+    final innerTag = length > 2 ? _blocks[length - 1] : null;
+
+    return <_BlockElement>[innerTag, outerTag];
   }
 
   @override
@@ -130,6 +149,8 @@ class MarkdownBuilder implements md.NodeVisitor {
   @override
   void visitElementAfter(md.Element element) {
     final String tag = element.tag;
+    final elements = _extractElementsForTag();
+    final outerElement = elements[1];
 
     if (_isBlockTag(tag)) {
       _addAnonymousBlockIfNeeded(styleSheet.styles[tag]);
@@ -183,7 +204,8 @@ class MarkdownBuilder implements md.NodeVisitor {
         }
       }
 
-      _addBlockChild(child);
+
+      _addBlockChild(delegate.elementWrapper(tag, outerElement.tag, child));
     } else {
       final _InlineElement current = _inlines.removeLast();
       final _InlineElement parent = _inlines.last;
