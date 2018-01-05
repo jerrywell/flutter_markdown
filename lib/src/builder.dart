@@ -160,6 +160,11 @@ class MarkdownBuilder implements md.NodeVisitor {
       _linkHandlers.add(delegate.createLink(element.attributes['href']));
     }
 
+    if (element.isEmpty) {
+      visitElementAfter(element);
+      return false;
+    }
+
     return true;
   }
 
