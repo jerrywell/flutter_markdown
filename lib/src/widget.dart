@@ -25,6 +25,15 @@ abstract class SyntaxHighlighter { // ignore: one_member_abstracts
   TextSpan format(String source);
 }
 
+/// Provides a chance to use custom parse rule.
+typedef List<md.Node> MarkdownTextParser(String data);
+
+/// Provides a chance to post process text content.
+typedef TextSpan MarkdownTextProcessor(String last, String lastSecond, TextStyle style, String text, GestureRecognizer recognizer);
+
+/// Provides a chance to post process text content.
+typedef Widget MarkdownElementWrapper(String previousTag, String currentTag, Widget child);
+
 /// A base class for widgets that parse and display Markdown.
 ///
 /// Supports all standard Markdown from the original
@@ -46,6 +55,9 @@ abstract class MarkdownWidget extends StatefulWidget {
     this.syntaxHighlighter,
     this.onTapLink,
     this.imageDirectory,
+    this.textParser,
+    this.textProcessor,
+    this.elementWrapper
   }) : assert(data != null),
        super(key: key);
 
@@ -67,6 +79,16 @@ abstract class MarkdownWidget extends StatefulWidget {
 
   /// The base directory holding images referenced by Img tags with local file paths.
   final Directory imageDirectory;
+  /// Called to parse markdown text to markdown nodes
+  final MarkdownTextParser textParser;
+
+  /// Called to process each markdown text and return
+  final MarkdownTextProcessor textProcessor;
+
+  /// Called to return the wrapper of given child
+  final MarkdownElementWrapper elementWrapper;
+
+
 
   /// Subclasses should override this function to display the given children,
   /// which are the parsed representation of [data].
@@ -106,15 +128,23 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
 
     _disposeRecognizers();
 
-    // TODO: This can be optimized by doing the split and removing \r at the same time
-    final List<String> lines = widget.data.replaceAll('\r\n', '\n').split('\n');
-    final md.Document document = new md.Document();
+    List<md.Node> nodes;
+
+    if (widget.textParser != null) {
+      nodes = widget.textParser(widget.data);
+    } else {
+      // TODO: This can be optimized by doing the split and removing \r at the same time
+      final List<String> lines = widget.data.replaceAll('\r\n', '\n').split('\n');
+      final md.Document document = new md.Document();
+      nodes = document.parseLines(lines);
+    }
+
     final MarkdownBuilder builder = new MarkdownBuilder(
       delegate: this,
       styleSheet: styleSheet,
       imageDirectory: widget.imageDirectory,
     );
-    _children = builder.build(document.parseLines(lines));
+    _children = builder.build(nodes);
   }
 
   void _disposeRecognizers() {
@@ -145,6 +175,18 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
   }
 
   @override
+  TextSpan textProcess(String innerTag, String outerTag, TextStyle style, String text, GestureRecognizer recognizer) {
+    return widget.textProcessor != null ?
+    widget.textProcessor(innerTag, outerTag, style, text, recognizer) :
+    new TextSpan(text: text, recognizer: recognizer);
+  }
+
+  @override
+  Widget elementWrapper(String innerTag, String outerTag, Widget child) {
+    return widget.elementWrapper != null ? widget.elementWrapper(innerTag, outerTag, child) : new Container(child: child);
+  }
+
+  @override
   Widget build(BuildContext context) => widget.build(context, _children);
 }
 
@@ -166,6 +208,9 @@ class MarkdownBody extends MarkdownWidget {
     SyntaxHighlighter syntaxHighlighter,
     MarkdownTapLinkCallback onTapLink,
     Directory imageDirectory,
+    MarkdownTextParser textParser,
+    MarkdownTextProcessor textProcessor,
+    MarkdownElementWrapper elementWrapper,
   }) : super(
     key: key,
     data: data,
@@ -173,6 +218,9 @@ class MarkdownBody extends MarkdownWidget {
     syntaxHighlighter: syntaxHighlighter,
     onTapLink: onTapLink,
     imageDirectory: imageDirectory,
+    textParser: textParser,
+    textProcessor: textProcessor,
+    elementWrapper: elementWrapper
   );
 
   @override
@@ -204,6 +252,9 @@ class Markdown extends MarkdownWidget {
     SyntaxHighlighter syntaxHighlighter,
     MarkdownTapLinkCallback onTapLink,
     Directory imageDirectory,
+    MarkdownTextParser textParser,
+    MarkdownTextProcessor textProcessor,
+    MarkdownElementWrapper elementWrapper,
     this.padding: const EdgeInsets.all(16.0),
   }) : super(
     key: key,
@@ -212,6 +263,9 @@ class Markdown extends MarkdownWidget {
     syntaxHighlighter: syntaxHighlighter,
     onTapLink: onTapLink,
     imageDirectory: imageDirectory,
+    textParser: textParser,
+    textProcessor: textProcessor,
+    elementWrapper: elementWrapper
   );
 
   /// The amount of space by which to inset the children.
