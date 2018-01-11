@@ -80,6 +80,9 @@ abstract class MarkdownBuilderDelegate {
 
   /// Give a chance to add a wrapper of child
   Widget elementWrapper(String innerTag, String outerTag, Widget child);
+
+  /// Called to return the custom image widget
+  Widget buildImage(String url, double width, double height);
 }
 
 /// Builds a [Widget] tree from parsed Markdown.
@@ -286,7 +289,8 @@ class MarkdownBuilder implements md.NodeVisitor {
 
     Uri uri = Uri.parse(path);
     if (uri.scheme == 'http' || uri.scheme == 'https') {
-      return new Image.network(uri.toString(), width: width, height: height);
+      return delegate.buildImage != null ? delegate.buildImage(uri.toString(), width, height) :
+      new Image.network(uri.toString(), width: width, height: height);
     } else {
       String filePath = (imageDirectory == null
           ? uri.toFilePath()

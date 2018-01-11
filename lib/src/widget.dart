@@ -34,6 +34,9 @@ typedef TextSpan MarkdownTextProcessor(String last, String lastSecond, TextStyle
 /// Provides a chance to post process text content.
 typedef Widget MarkdownElementWrapper(String previousTag, String currentTag, Widget child);
 
+/// Provides a chance to use custom image widget.
+typedef Widget ImageBuilder(String url, double width, double height);
+
 /// A base class for widgets that parse and display Markdown.
 ///
 /// Supports all standard Markdown from the original
@@ -57,7 +60,8 @@ abstract class MarkdownWidget extends StatefulWidget {
     this.imageDirectory,
     this.textParser,
     this.textProcessor,
-    this.elementWrapper
+    this.elementWrapper,
+    this.buildImage
   }) : assert(data != null),
        super(key: key);
 
@@ -87,6 +91,9 @@ abstract class MarkdownWidget extends StatefulWidget {
 
   /// Called to return the wrapper of given child
   final MarkdownElementWrapper elementWrapper;
+
+  /// Called to return the custom image widget
+  final ImageBuilder buildImage;
 
 
 
@@ -188,6 +195,11 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
 
   @override
   Widget build(BuildContext context) => widget.build(context, _children);
+  @override
+
+  Widget buildImage(String url, double width, double height) {
+    return widget.buildImage != null ? widget.buildImage(url, width, height) : null;
+  }
 }
 
 /// A non-scrolling widget that parses and displays Markdown.
@@ -211,6 +223,7 @@ class MarkdownBody extends MarkdownWidget {
     MarkdownTextParser textParser,
     MarkdownTextProcessor textProcessor,
     MarkdownElementWrapper elementWrapper,
+    ImageBuilder buildImage
   }) : super(
     key: key,
     data: data,
@@ -220,7 +233,8 @@ class MarkdownBody extends MarkdownWidget {
     imageDirectory: imageDirectory,
     textParser: textParser,
     textProcessor: textProcessor,
-    elementWrapper: elementWrapper
+    elementWrapper: elementWrapper,
+    buildImage: buildImage
   );
 
   @override
@@ -255,6 +269,7 @@ class Markdown extends MarkdownWidget {
     MarkdownTextParser textParser,
     MarkdownTextProcessor textProcessor,
     MarkdownElementWrapper elementWrapper,
+    ImageBuilder buildImage,
     this.padding: const EdgeInsets.all(16.0),
   }) : super(
     key: key,
@@ -265,7 +280,8 @@ class Markdown extends MarkdownWidget {
     imageDirectory: imageDirectory,
     textParser: textParser,
     textProcessor: textProcessor,
-    elementWrapper: elementWrapper
+    elementWrapper: elementWrapper,
+    buildImage: buildImage
   );
 
   /// The amount of space by which to inset the children.
