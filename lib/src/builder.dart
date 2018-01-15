@@ -156,11 +156,6 @@ class MarkdownBuilder implements md.NodeVisitor {
 
   @override
   bool visitElementBefore(md.Element element) {
-    // trim unsupported node
-    // https://github.com/zkoss/boeneo/issues/6443
-    if (element.tag == 'hr')
-      return false;
-
     final String tag = element.tag;
     if (_isBlockTag(tag)) {
       _addAnonymousBlockIfNeeded(styleSheet.styles[tag]);
