@@ -166,9 +166,12 @@ class MarkdownBuilder implements md.NodeVisitor {
       _addParentInlineIfNeeded(_blocks.last.tag);
 
       TextStyle parentStyle = _inlines.last.style;
+      final style = styleSheet.styles[tag];
+      final mergedStyle = style == null ? parentStyle : parentStyle.merge(style);
       _inlines.add(new _InlineElement(
         tag,
-        style: parentStyle.merge(styleSheet.styles[tag]),
+        style: mergedStyle
+        //style: parentStyle.merge(styleSheet.styles[tag]),
       ));
     }
 
