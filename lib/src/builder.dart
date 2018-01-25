@@ -25,6 +25,7 @@ final Set<String> _kBlockTags = new Set<String>.from(<String>[
   'ol',
   'ul',
   'hr',
+  'table'
 ]);
 
 const List<String> _kListTags = const <String>['ul', 'ol'];
@@ -84,6 +85,9 @@ abstract class MarkdownBuilderDelegate {
 
   /// Called to return the custom image widget
   Widget buildImage(String url, double width, double height);
+
+  /// Called to return the custom table widget
+  Widget buildTable(md.Element tableElement);
 }
 
 /// Builds a [Widget] tree from parsed Markdown.
@@ -255,6 +259,9 @@ class MarkdownBuilder implements md.NodeVisitor {
           decoration: styleSheet.horizontalRuleDecoration,
           child: child,
         );
+      } else if (tag == 'table') {
+        child = delegate.buildTable(element);
+        assert(child != null);
       }
 
       _addBlockChild(delegate.elementWrapper(tag, outerElement.tag, child));
