@@ -298,17 +298,19 @@ class MarkdownBuilder implements md.NodeVisitor {
       }
     }
 
-    Uri uri = Uri.parse(path);
-    Widget child;
-    if (uri.scheme == 'http' || uri.scheme == 'https') {
-      child = delegate.buildImage != null ? delegate.buildImage(uri.toString(), width, height) :
-      new Image.network(uri.toString(), width: width, height: height);
-    } else {
-      String filePath = (imageDirectory == null
-          ? uri.toFilePath()
-          : p.join(imageDirectory.path, uri.toFilePath()));
-      child = new Image.file(new File(filePath), width: width, height: height);
-    }
+    Widget child = delegate.buildImage(src, width, height);
+    // Quire: Don't use this section, we assume all comming src is http url.
+    // Uri uri = Uri.parse(path);
+    // Widget child;
+    // if (uri.scheme == 'http' || uri.scheme == 'https') {
+    //   child = delegate.buildImage != null ? delegate.buildImage(uri.toString(), width, height) :
+    //   new Image.network(uri.toString(), width: width, height: height);
+    // } else {
+    //   String filePath = (imageDirectory == null
+    //       ? uri.toFilePath()
+    //       : p.join(imageDirectory.path, uri.toFilePath()));
+    //   child = new Image.file(new File(filePath), width: width, height: height);
+    // }
 
     if (_linkHandlers.isNotEmpty) {
       TapGestureRecognizer recognizer = _linkHandlers.last;
