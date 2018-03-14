@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:markd/markdown.dart' as md;
-import 'package:path/path.dart' as p;
+//import 'package:path/path.dart' as p;
 
 import 'style_sheet.dart';
 
@@ -171,7 +171,7 @@ class MarkdownBuilder implements md.NodeVisitor {
 
       TextStyle parentStyle = _inlines.last.style;
       final style = styleSheet.styles[tag];
-      final mergedStyle = style == null ? parentStyle : parentStyle.merge(style);
+      final mergedStyle = style == null ? parentStyle : parentStyle == null ? style : parentStyle.merge(style);
       _inlines.add(new _InlineElement(
         tag,
         style: mergedStyle
@@ -287,7 +287,7 @@ class MarkdownBuilder implements md.NodeVisitor {
     if (parts.isEmpty)
       return const SizedBox();
 
-    final String path = parts.first;
+    // final String path = parts.first;
     double width;
     double height;
     if (parts.length == 2) {
