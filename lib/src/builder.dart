@@ -97,7 +97,7 @@ abstract class MarkdownBuilderDelegate {
 ///  * [Markdown], which is a widget that parses and displays Markdown.
 class MarkdownBuilder implements md.NodeVisitor {
   /// Creates an object that builds a [Widget] tree from parsed Markdown.
-  MarkdownBuilder({ this.delegate, this.styleSheet, this.imageDirectory });
+  MarkdownBuilder({ this.delegate, this.styleSheet, this.imageDirectory , this.textScaleFactor });
 
   /// A delegate that controls how link and `pre` elements behave.
   final MarkdownBuilderDelegate delegate;
@@ -113,6 +113,8 @@ class MarkdownBuilder implements md.NodeVisitor {
   final List<_InlineElement> _inlines = <_InlineElement>[];
   final List<GestureRecognizer> _linkHandlers = <GestureRecognizer>[];
 
+  /// the text scale from context
+  final double textScaleFactor;
 
   /// Returns widgets that display the given Markdown nodes.
   ///
@@ -155,7 +157,7 @@ class MarkdownBuilder implements md.NodeVisitor {
 //          recognizer: _linkHandlers.isNotEmpty ? _linkHandlers.last : null,
 //        );
 
-    _inlines.last.children.add(new RichText(text: span));
+    _inlines.last.children.add(new RichText(text: span, textScaleFactor: textScaleFactor));
   }
 
   @override
@@ -373,7 +375,7 @@ class MarkdownBuilder implements md.NodeVisitor {
           : [previous.text];
         children.add(child.text);
         TextSpan mergedSpan = new TextSpan(children: children);
-        mergedTexts.add(new RichText(text: mergedSpan));
+        mergedTexts.add(new RichText(text: mergedSpan, textScaleFactor: textScaleFactor));
       } else {
         mergedTexts.add(child);
       }

@@ -155,6 +155,7 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
       delegate: this,
       styleSheet: styleSheet,
       imageDirectory: widget.imageDirectory,
+      textScaleFactor: MediaQuery.of(context).textScaleFactor
     );
     _children = builder.build(nodes);
   }
