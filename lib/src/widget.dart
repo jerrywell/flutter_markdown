@@ -40,6 +40,9 @@ typedef Widget ImageBuilder(String url, double width, double height);
 /// Provides a chance to use custom table widget.
 typedef Widget TableBuilder(md.Element tableElement);
 
+/// Provides a chance to wrap a inline style for tag.
+typedef TextStyle MarkdownInlineStyleWrapper(String tag, TextStyle style);
+
 /// A base class for widgets that parse and display Markdown.
 ///
 /// Supports all standard Markdown from the original
@@ -65,7 +68,8 @@ abstract class MarkdownWidget extends StatefulWidget {
     this.textProcessor,
     this.elementWrapper,
     this.buildImage,
-    this.buildTable
+    this.buildTable,
+    this.inlineStyleWrapper
   }) : assert(data != null),
        super(key: key);
 
@@ -101,6 +105,9 @@ abstract class MarkdownWidget extends StatefulWidget {
 
   /// Called to return the custom table widget
   final TableBuilder buildTable;
+
+  /// Called to return the custom style for a inline tag
+  final MarkdownInlineStyleWrapper inlineStyleWrapper;
 
   /// Subclasses should override this function to display the given children,
   /// which are the parsed representation of [data].
@@ -201,14 +208,20 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
 
   @override
   Widget build(BuildContext context) => widget.build(context, _children);
-  @override
 
+  @override
   Widget buildImage(String url, double width, double height) {
     return widget.buildImage != null ? widget.buildImage(url, width, height) : null;
   }
 
+  @override
   Widget buildTable(md.Element tableElement) {
     return widget.buildTable != null ? widget.buildTable(tableElement) : null;
+  }
+
+  @override
+  TextStyle inlineStyleWrapper(String tag, TextStyle style) {
+    return widget.inlineStyleWrapper != null ? widget.inlineStyleWrapper(tag, style) : null;
   }
 }
 
@@ -235,6 +248,7 @@ class MarkdownBody extends MarkdownWidget {
     MarkdownElementWrapper elementWrapper,
     ImageBuilder buildImage,
     TableBuilder buildTable,
+    MarkdownInlineStyleWrapper inlineStyleWrapper,
   }) : super(
     key: key,
     data: data,
@@ -246,7 +260,8 @@ class MarkdownBody extends MarkdownWidget {
     textProcessor: textProcessor,
     elementWrapper: elementWrapper,
     buildImage: buildImage,
-    buildTable: buildTable
+    buildTable: buildTable,
+    inlineStyleWrapper: inlineStyleWrapper
   );
 
   @override
@@ -283,6 +298,7 @@ class Markdown extends MarkdownWidget {
     MarkdownElementWrapper elementWrapper,
     ImageBuilder buildImage,
     TableBuilder buildTable,
+    MarkdownInlineStyleWrapper inlineStyleWrapper,
     this.padding: const EdgeInsets.all(16.0),
   }) : super(
     key: key,
@@ -295,7 +311,8 @@ class Markdown extends MarkdownWidget {
     textProcessor: textProcessor,
     elementWrapper: elementWrapper,
     buildImage: buildImage,
-    buildTable: buildTable
+    buildTable: buildTable,
+    inlineStyleWrapper: inlineStyleWrapper
   );
 
   /// The amount of space by which to inset the children.

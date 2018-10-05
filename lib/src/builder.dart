@@ -88,6 +88,9 @@ abstract class MarkdownBuilderDelegate {
 
   /// Called to return the custom table widget
   Widget buildTable(md.Element tableElement);
+
+  /// Give a chance to add a wrapper of style for inline tag
+  TextStyle inlineStyleWrapper(String tag, TextStyle style);
 }
 
 /// Builds a [Widget] tree from parsed Markdown.
@@ -173,7 +176,7 @@ class MarkdownBuilder implements md.NodeVisitor {
 
       TextStyle parentStyle = _inlines.last.style;
       final style = styleSheet.styles[tag];
-      final mergedStyle = style == null ? parentStyle : parentStyle == null ? style : parentStyle.merge(style);
+      final mergedStyle = delegate.inlineStyleWrapper(tag, style == null ? parentStyle : parentStyle == null ? style : parentStyle.merge(style));
       _inlines.add(new _InlineElement(
         tag,
         style: mergedStyle
