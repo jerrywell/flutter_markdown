@@ -83,6 +83,9 @@ abstract class MarkdownBuilderDelegate {
   /// Give a chance to add a wrapper of child
   Widget elementWrapper(String innerTag, String outerTag, Widget child);
 
+  /// called to return the custom checklist item
+  Widget buildChecklist(md.Element liElement);
+
   /// Called to return the custom image widget
   Widget buildImage(String url, double width, double height);
 
@@ -232,13 +235,20 @@ class MarkdownBuilder implements md.NodeVisitor {
         _listIndents.removeLast();
       } else if (tag == 'li') {
         if (_listIndents.isNotEmpty) {
+          final isChecklist = element.attributes['class'] == 'todo';
+          Widget bullet;
+          if (isChecklist)
+            bullet = delegate.buildChecklist(element);
+          else
+            bullet = new SizedBox(
+              width: styleSheet.listIndent,
+              child: _buildBullet(_listIndents.last, element),
+            );
+
           child = new Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              new SizedBox(
-                width: styleSheet.listIndent,
-                child: _buildBullet(_listIndents.last),
-              ),
+              bullet,
               new Expanded(child: child)
             ],
           );
@@ -325,7 +335,7 @@ class MarkdownBuilder implements md.NodeVisitor {
     }
   }
 
-  Widget _buildBullet(String listTag) {
+  Widget _buildBullet(String listTag, md.Element element) {
     if (listTag == 'ul')
       return const Text('•', textAlign: TextAlign.center);
 

@@ -34,6 +34,9 @@ typedef TextSpan MarkdownTextProcessor(String last, String lastSecond, TextStyle
 /// Provides a chance to post process text content.
 typedef Widget MarkdownElementWrapper(String previousTag, String currentTag, Widget child);
 
+/// Provides a chance to use custom checklist widget.
+typedef Widget ChecklistBuilder(md.Element liElement);
+
 /// Provides a chance to use custom image widget.
 typedef Widget ImageBuilder(String url, double width, double height);
 
@@ -67,6 +70,7 @@ abstract class MarkdownWidget extends StatefulWidget {
     this.textParser,
     this.textProcessor,
     this.elementWrapper,
+    this.buildChecklist,
     this.buildImage,
     this.buildTable,
     this.inlineStyleWrapper
@@ -99,6 +103,9 @@ abstract class MarkdownWidget extends StatefulWidget {
 
   /// Called to return the wrapper of given child
   final MarkdownElementWrapper elementWrapper;
+
+  /// Called to return the custom checklist widget;
+  final ChecklistBuilder buildChecklist;
 
   /// Called to return the custom image widget
   final ImageBuilder buildImage;
@@ -210,6 +217,11 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
   Widget build(BuildContext context) => widget.build(context, _children);
 
   @override
+  Widget buildChecklist(md.Element element) {
+    return widget.buildChecklist != null ? widget.buildChecklist(element) : null;
+  }
+
+  @override
   Widget buildImage(String url, double width, double height) {
     return widget.buildImage != null ? widget.buildImage(url, width, height) : null;
   }
@@ -246,6 +258,7 @@ class MarkdownBody extends MarkdownWidget {
     MarkdownTextParser textParser,
     MarkdownTextProcessor textProcessor,
     MarkdownElementWrapper elementWrapper,
+    ChecklistBuilder buildChecklist,
     ImageBuilder buildImage,
     TableBuilder buildTable,
     MarkdownInlineStyleWrapper inlineStyleWrapper,
@@ -259,6 +272,7 @@ class MarkdownBody extends MarkdownWidget {
     textParser: textParser,
     textProcessor: textProcessor,
     elementWrapper: elementWrapper,
+    buildChecklist: buildChecklist,
     buildImage: buildImage,
     buildTable: buildTable,
     inlineStyleWrapper: inlineStyleWrapper
@@ -296,6 +310,7 @@ class Markdown extends MarkdownWidget {
     MarkdownTextParser textParser,
     MarkdownTextProcessor textProcessor,
     MarkdownElementWrapper elementWrapper,
+    ChecklistBuilder buildChecklist,
     ImageBuilder buildImage,
     TableBuilder buildTable,
     MarkdownInlineStyleWrapper inlineStyleWrapper,
@@ -310,6 +325,7 @@ class Markdown extends MarkdownWidget {
     textParser: textParser,
     textProcessor: textProcessor,
     elementWrapper: elementWrapper,
+    buildChecklist: buildChecklist,
     buildImage: buildImage,
     buildTable: buildTable,
     inlineStyleWrapper: inlineStyleWrapper
