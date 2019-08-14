@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:markd/markdown.dart' as md;
+import 'package:flutter/material.dart' as material;
 //import 'package:path/path.dart' as p;
 
 import 'style_sheet.dart';
@@ -159,10 +160,12 @@ class MarkdownBuilder implements md.NodeVisitor {
 //          text: text.text,
 //          recognizer: _linkHandlers.isNotEmpty ? _linkHandlers.last : null,
 //        );
+    
+    _inlines.last.children.add(material.SelectableText.rich(
+      span,
+      onTap: () {
 
-    _inlines.last.children.add(new RichText(
-      textScaleFactor: styleSheet.textScaleFactor,
-      text: span,
+      },
     ));
   }
 
@@ -394,18 +397,15 @@ class MarkdownBuilder implements md.NodeVisitor {
   List<Widget> _mergeInlineChildren(_InlineElement inline) {
     List<Widget> mergedTexts = <Widget>[];
     for (Widget child in inline.children) {
-      if (mergedTexts.isNotEmpty && mergedTexts.last is RichText && child is RichText) {
-        RichText previous = mergedTexts.removeLast();
-        TextSpan previousTextSpan = previous.text;
+      if (mergedTexts.isNotEmpty && mergedTexts.last is material.SelectableText && child is material.SelectableText) {
+        material.SelectableText previous = mergedTexts.removeLast();
+        TextSpan previousTextSpan = previous.textSpan;
         List<TextSpan> children = previousTextSpan.children != null
-            ? new List.from(previousTextSpan.children)
-            : [previousTextSpan];
-        children.add(child.text);
+          ? new List.from(previousTextSpan.children)
+          : [previousTextSpan];
+        children.add(child.textSpan);
         TextSpan mergedSpan = new TextSpan(children: children);
-        mergedTexts.add(new RichText(
-          textScaleFactor: styleSheet.textScaleFactor,
-          text: mergedSpan,
-        ));
+        mergedTexts.add(material.SelectableText.rich(mergedSpan));
       } else {
         mergedTexts.add(child);
       }
