@@ -27,7 +27,8 @@ class MarkdownStyleSheet {
     this.blockquoteDecoration,
     this.codeblockPadding,
     this.codeblockDecoration,
-    this.horizontalRuleDecoration
+    this.horizontalRuleDecoration,
+    this.textScaleFactor = 1.0
   }) : _styles = <String, TextStyle>{
     'a': a,
     'p': p,
@@ -152,29 +153,31 @@ class MarkdownStyleSheet {
     Decoration blockquoteDecoration,
     double codeblockPadding,
     Decoration codeblockDecoration,
-    Decoration horizontalRuleDecoration
+    Decoration horizontalRuleDecoration,
+    double textScaleFactor,
   }) {
     return new MarkdownStyleSheet(
-      a: a != null ? a : this.a,
-      p: p != null ? p : this.p,
-      code: code != null ? code : this.code,
-      h1: h1 != null ? h1 : this.h1,
-      h2: h2 != null ? h2 : this.h2,
-      h3: h3 != null ? h3 : this.h3,
-      h4: h4 != null ? h4 : this.h4,
-      h5: h5 != null ? h5 : this.h5,
-      h6: h6 != null ? h6 : this.h6,
-      em: em != null ? em : this.em,
-      strong: strong != null ? strong : this.strong,
-      blockquote: blockquote != null ? blockquote : this.blockquote,
-      img: img != null ? img: this.img,
-      blockSpacing: blockSpacing != null ? blockSpacing : this.blockSpacing,
-      listIndent: listIndent != null ? listIndent : this.listIndent,
-      blockquotePadding: blockquotePadding != null ? blockquotePadding : this.blockquotePadding,
-      blockquoteDecoration: blockquoteDecoration != null ? blockquoteDecoration : this.blockquoteDecoration,
-      codeblockPadding: codeblockPadding != null ? codeblockPadding : this.codeblockPadding,
-      codeblockDecoration: codeblockDecoration != null ? codeblockDecoration : this.codeblockDecoration,
-      horizontalRuleDecoration: horizontalRuleDecoration != null ? horizontalRuleDecoration : this.horizontalRuleDecoration
+      a: a ?? this.a,
+      p: p ?? this.p,
+      code: code ?? this.code,
+      h1: h1 ?? this.h1,
+      h2: h2 ?? this.h2,
+      h3: h3 ?? this.h3,
+      h4: h4 ?? this.h4,
+      h5: h5 ?? this.h5,
+      h6: h6 ?? this.h6,
+      em: em ?? this.em,
+      strong: strong ?? this.strong,
+      blockquote: blockquote ?? this.blockquote,
+      img: img ?? this.img,
+      blockSpacing: blockSpacing ?? this.blockSpacing,
+      listIndent: listIndent ?? this.listIndent,
+      blockquotePadding: blockquotePadding ?? this.blockquotePadding,
+      blockquoteDecoration: blockquoteDecoration ?? this.blockquoteDecoration,
+      codeblockPadding: codeblockPadding ?? this.codeblockPadding,
+      codeblockDecoration: codeblockDecoration ?? this.codeblockDecoration,
+      horizontalRuleDecoration: horizontalRuleDecoration ?? this.horizontalRuleDecoration,
+      textScaleFactor : textScaleFactor ?? this.textScaleFactor,
     );
   }
 
@@ -238,7 +241,10 @@ class MarkdownStyleSheet {
   /// The decoration to use for `hr` elements.
   final Decoration horizontalRuleDecoration;
 
-  /// A [Map] from element name to the cooresponding [TextStyle] object.
+  // The text scale factor to use in textual elements
+  final double textScaleFactor;
+
+  /// A [Map] from element name to the corresponding [TextStyle] object.
   Map<String, TextStyle> get styles => _styles;
   Map<String, TextStyle> _styles;
 
@@ -268,12 +274,13 @@ class MarkdownStyleSheet {
         && typedOther.blockquoteDecoration == blockquoteDecoration
         && typedOther.codeblockPadding == codeblockPadding
         && typedOther.codeblockDecoration == codeblockDecoration
-        && typedOther.horizontalRuleDecoration == horizontalRuleDecoration;
+        && typedOther.horizontalRuleDecoration == horizontalRuleDecoration
+        && typedOther.textScaleFactor == textScaleFactor;
   }
 
   @override
   int get hashCode {
-    return hashValues(
+    return hashList([
       a,
       p,
       code,
@@ -294,6 +301,7 @@ class MarkdownStyleSheet {
       codeblockPadding,
       codeblockDecoration,
       horizontalRuleDecoration,
-    );
+      textScaleFactor,
+    ]);
   }
 }

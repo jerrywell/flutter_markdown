@@ -82,7 +82,7 @@ abstract class MarkdownWidget extends StatefulWidget {
 
   /// The styles to use when displaying the Markdown.
   ///
-  /// If null, the styles are infered from the current [Theme].
+  /// If null, the styles are inferred from the current [Theme].
   final MarkdownStyleSheet styleSheet;
 
   /// The syntax highlighter used to color text in `pre` elements.
@@ -161,7 +161,7 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
     } else {
       // TODO: This can be optimized by doing the split and removing \r at the same time
       final List<String> lines = widget.data.replaceAll('\r\n', '\n').split('\n');
-      final md.Document document = new md.Document();
+      final md.Document document = new md.Document(encodeHtml: false);
       nodes = document.parseLines(lines);
     }
 
@@ -169,7 +169,6 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
       delegate: this,
       styleSheet: styleSheet,
       imageDirectory: widget.imageDirectory,
-      textScaleFactor: MediaQuery.of(context).textScaleFactor
     );
     _children = builder.build(nodes);
   }

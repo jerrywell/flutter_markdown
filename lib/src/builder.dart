@@ -103,7 +103,7 @@ abstract class MarkdownBuilderDelegate {
 ///  * [Markdown], which is a widget that parses and displays Markdown.
 class MarkdownBuilder implements md.NodeVisitor {
   /// Creates an object that builds a [Widget] tree from parsed Markdown.
-  MarkdownBuilder({ this.delegate, this.styleSheet, this.imageDirectory , this.textScaleFactor });
+  MarkdownBuilder({ this.delegate, this.styleSheet, this.imageDirectory});
 
   /// A delegate that controls how link and `pre` elements behave.
   final MarkdownBuilderDelegate delegate;
@@ -118,9 +118,6 @@ class MarkdownBuilder implements md.NodeVisitor {
   final List<_BlockElement> _blocks = <_BlockElement>[];
   final List<_InlineElement> _inlines = <_InlineElement>[];
   final List<GestureRecognizer> _linkHandlers = <GestureRecognizer>[];
-
-  /// the text scale from context
-  final double textScaleFactor;
 
   /// Returns widgets that display the given Markdown nodes.
   ///
@@ -163,7 +160,10 @@ class MarkdownBuilder implements md.NodeVisitor {
 //          recognizer: _linkHandlers.isNotEmpty ? _linkHandlers.last : null,
 //        );
 
-    _inlines.last.children.add(new RichText(text: span, textScaleFactor: textScaleFactor));
+    _inlines.last.children.add(new RichText(
+      textScaleFactor: styleSheet.textScaleFactor,
+      text: span,
+    ));
   }
 
   @override
@@ -318,8 +318,11 @@ class MarkdownBuilder implements md.NodeVisitor {
     // Uri uri = Uri.parse(path);
     // Widget child;
     // if (uri.scheme == 'http' || uri.scheme == 'https') {
-    //   child = delegate.buildImage != null ? delegate.buildImage(uri.toString(), width, height) :
-    //   new Image.network(uri.toString(), width: width, height: height);
+    //   child = new Image.network(uri.toString(), width: width, height: height);
+    // } else if (uri.scheme == 'data') {
+    //   child = _handleDataSchemeUri(uri, width, height);
+    // } else if (uri.scheme == "resource") {
+    //   child = new Image.asset(path.substring(9), width: width, height: height);
     // } else {
     //   String filePath = (imageDirectory == null
     //       ? uri.toFilePath()
@@ -335,14 +338,24 @@ class MarkdownBuilder implements md.NodeVisitor {
     }
   }
 
+//  Widget _handleDataSchemeUri(Uri uri, final double width, final double height) {
+//    final String mimeType = uri.data.mimeType;
+//    if (mimeType.startsWith('image/')) {
+//      return new Image.memory(uri.data.contentAsBytes(), width: width, height: height);
+//    } else if (mimeType.startsWith('text/')) {
+//      return new Text(uri.data.contentAsString());
+//    }
+//    return const SizedBox();
+//  }
+
   Widget _buildBullet(String listTag, md.Element element) {
     if (listTag == 'ul')
-      return const Text('•', textAlign: TextAlign.center);
+      return new Text('•', textAlign: TextAlign.center, style: styleSheet.styles['li']);
 
     final int index = _blocks.last.nextListIndex;
     return new Padding(
       padding: const EdgeInsets.only(right: 5.0),
-      child: new Text('${index + 1}.', textAlign: TextAlign.right),
+      child: new Text('${index + 1}.', textAlign: TextAlign.right, style: styleSheet.styles['li']),
     );
   }
 
@@ -383,12 +396,16 @@ class MarkdownBuilder implements md.NodeVisitor {
     for (Widget child in inline.children) {
       if (mergedTexts.isNotEmpty && mergedTexts.last is RichText && child is RichText) {
         RichText previous = mergedTexts.removeLast();
-        List<TextSpan> children = previous.text.children != null
-          ? new List.from(previous.text.children)
-          : [previous.text];
+        TextSpan previousTextSpan = previous.text;
+        List<TextSpan> children = previousTextSpan.children != null
+            ? new List.from(previousTextSpan.children)
+            : [previousTextSpan];
         children.add(child.text);
         TextSpan mergedSpan = new TextSpan(children: children);
-        mergedTexts.add(new RichText(text: mergedSpan, textScaleFactor: textScaleFactor));
+        mergedTexts.add(new RichText(
+          textScaleFactor: styleSheet.textScaleFactor,
+          text: mergedSpan,
+        ));
       } else {
         mergedTexts.add(child);
       }

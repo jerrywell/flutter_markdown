@@ -1,3 +1,26 @@
+## 0.2.0
+
+* Updated environment sdk constraints to make the package
+  Dart 2 compatible.  As a result, usage of this version and higher 
+  requires a Dart 2 SDK.
+
+## 0.1.6
+
+* Updated `markdown` dependency.
+
+## 0.1.5
+
+* Add `mockito` as a dev dependency. Eliminate use of `package:http`, which
+  is no longer part of Flutter.
+
+## 0.1.4
+
+* Add `li` style to bullets 
+
+## 0.1.3
+
+* Add `path` and `http` as declared dependencies in `pubspec.yaml`
+
 ## 0.1.2
 
 * Add support for horizontal rules.
