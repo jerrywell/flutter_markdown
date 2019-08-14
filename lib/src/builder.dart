@@ -7,10 +7,10 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:markd/markdown.dart' as md;
-import 'package:flutter/material.dart' as material;
 //import 'package:path/path.dart' as p;
 
 import 'style_sheet.dart';
+import 'selectable_text.dart';
 
 final Set<String> _kBlockTags = new Set<String>.from(<String>[
   'p',
@@ -160,8 +160,8 @@ class MarkdownBuilder implements md.NodeVisitor {
 //          text: text.text,
 //          recognizer: _linkHandlers.isNotEmpty ? _linkHandlers.last : null,
 //        );
-    
-    _inlines.last.children.add(material.SelectableText.rich(
+
+    _inlines.last.children.add(SelectableText.rich(
       span,
       onTap: () {
 
@@ -397,15 +397,15 @@ class MarkdownBuilder implements md.NodeVisitor {
   List<Widget> _mergeInlineChildren(_InlineElement inline) {
     List<Widget> mergedTexts = <Widget>[];
     for (Widget child in inline.children) {
-      if (mergedTexts.isNotEmpty && mergedTexts.last is material.SelectableText && child is material.SelectableText) {
-        material.SelectableText previous = mergedTexts.removeLast();
+      if (mergedTexts.isNotEmpty && mergedTexts.last is SelectableText && child is SelectableText) {
+        SelectableText previous = mergedTexts.removeLast();
         TextSpan previousTextSpan = previous.textSpan;
         List<TextSpan> children = previousTextSpan.children != null
           ? new List.from(previousTextSpan.children)
           : [previousTextSpan];
         children.add(child.textSpan);
         TextSpan mergedSpan = new TextSpan(children: children);
-        mergedTexts.add(material.SelectableText.rich(mergedSpan));
+        mergedTexts.add(SelectableText.rich(mergedSpan));
       } else {
         mergedTexts.add(child);
       }
