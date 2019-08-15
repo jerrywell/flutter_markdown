@@ -85,7 +85,7 @@ class _SelectableTextSelectionGestureDetectorBuilder extends TextSelectionGestur
     }
   }
 
-  bool _triggerTapGestureRecognizerIfAny(TextSpan span) {
+  bool _triggerTapGestureRecognizerIfAny(TextSpan span, Offset globalPosition) {
     bool trigger(GestureRecognizer recognizer) {
       if (recognizer is TapGestureRecognizer) {
         recognizer.onTap?.call();
@@ -97,11 +97,11 @@ class _SelectableTextSelectionGestureDetectorBuilder extends TextSelectionGestur
     if (trigger(span.recognizer)) {
       return true;
     } else {
-      if (span.children != null) {
-        for (TextSpan s in span.children) {
-          if (trigger(s.recognizer) || _triggerTapGestureRecognizerIfAny(s)) {
-            return true;
-          }
+
+      if (span.children != null && span.children.isNotEmpty) {
+        final TextSpan s = span.children.first;
+        if (trigger(s.recognizer) || _triggerTapGestureRecognizerIfAny(s, globalPosition)) {
+          return true;
         }
       }
 
@@ -111,8 +111,6 @@ class _SelectableTextSelectionGestureDetectorBuilder extends TextSelectionGestur
 
   @override
   void onSingleTapUp(TapUpDetails details) {
-    print('onSingleTapUp: ${details.globalPosition}');
-
     final HitTestResult result = new HitTestResult();
     WidgetsBinding.instance.hitTest(result, details.globalPosition);
     // Look for the RenderBoxes that corresponds to the hit target (the hit target
@@ -120,7 +118,11 @@ class _SelectableTextSelectionGestureDetectorBuilder extends TextSelectionGestur
     for (HitTestEntry entry in result.path) {
       if (entry.target is RenderEditable) {
         final span = (entry.target as RenderEditable).text;
-        if (_triggerTapGestureRecognizerIfAny(span))
+
+        final textPosition = editableText.renderEditable.getPositionForPoint(details.globalPosition);
+        final leafSpan = span.getSpanForPosition(textPosition);
+
+        if (_triggerTapGestureRecognizerIfAny(leafSpan, details.globalPosition))
           break;
       }
     }

@@ -29,6 +29,16 @@ final Set<String> _kBlockTags = new Set<String>.from(<String>[
   'table'
 ]);
 
+final Set<String> _inlineBlockTags = <String> {
+  'p',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+};
+
 const List<String> _kListTags = const <String>['ul', 'ol'];
 
 bool _isBlockTag(String tag) => _kBlockTags.contains(tag);
@@ -39,11 +49,12 @@ class _BlockElement {
 
   final String tag;
   final List<Widget> children = <Widget>[];
+  final List<Widget> inlineWidgets = <Widget>[];
 
   int nextListIndex = 0;
 }
 
-/// A collection of widgets that should be placed adjacent to (inline with)
+  /// A collection of widgets that should be placed adjacent to (inline with)
 /// other inline elements in the same parent block.
 /// 
 /// Inline elements can be textual (a/em/strong) represented by [RichText] 
@@ -119,6 +130,7 @@ class MarkdownBuilder implements md.NodeVisitor {
   final List<_BlockElement> _blocks = <_BlockElement>[];
   final List<_InlineElement> _inlines = <_InlineElement>[];
   final List<GestureRecognizer> _linkHandlers = <GestureRecognizer>[];
+  final List<Widget> _inlineWidgets = <Widget>[];
 
   /// Returns widgets that display the given Markdown nodes.
   ///
@@ -135,6 +147,8 @@ class MarkdownBuilder implements md.NodeVisitor {
       assert(_blocks.length == 1);
       node.accept(this);
     }
+
+    flushBlock();
 
     assert(_inlines.isEmpty);
     return _blocks.single.children;
@@ -162,18 +176,47 @@ class MarkdownBuilder implements md.NodeVisitor {
 //        );
 
     _inlines.last.children.add(SelectableText.rich(
-      span,
-      onTap: () {
-
-      },
+      span
     ));
+  }
+
+  void flushBlock() {
+    if (_inlineWidgets.isNotEmpty) {
+
+      List<Widget> mergedTexts = <Widget>[];
+      for (Widget child in _inlineWidgets) {
+        if (mergedTexts.isNotEmpty && mergedTexts.last is SelectableText && child is SelectableText) {
+          SelectableText previous = mergedTexts.removeLast();
+          TextSpan previousTextSpan = previous.textSpan;
+          List<TextSpan> children = previousTextSpan.children != null
+            ? new List.from(previousTextSpan.children)
+            : [previousTextSpan];
+          children.add(child.textSpan);
+          TextSpan mergedSpan = new TextSpan(children: children);
+          mergedTexts.add(SelectableText.rich(mergedSpan));
+        } else {
+          mergedTexts.add(child);
+        }
+      }
+
+      _inlineWidgets.clear();
+
+
+      final Wrap wrap = new Wrap(children: mergedTexts);
+      _addBlockChild(wrap);
+    }
   }
 
   @override
   bool visitElementBefore(md.Element element) {
     final String tag = element.tag;
     if (_isBlockTag(tag)) {
-      _addAnonymousBlockIfNeeded(styleSheet.styles[tag]);
+      final isInlineBlock = _isInlineBlock(tag);
+      _addAnonymousBlockIfNeeded(styleSheet.styles[tag], isInlineBlock);
+
+      if (!isInlineBlock)
+        flushBlock();
+
       if (_isListTag(tag))
         _listIndents.add(tag);
       _blocks.add(new _BlockElement(tag));
@@ -212,6 +255,10 @@ class MarkdownBuilder implements md.NodeVisitor {
     return <_BlockElement>[innerTag, outerTag];
   }
 
+  bool _isInlineBlock(String elementTag, [String outerElementTag]) {
+    return _inlineBlockTags.contains(elementTag) && (outerElementTag == null || outerElementTag != 'blockquote');
+  }
+
   @override
   void visitElementAfter(md.Element element) {
     final String tag = element.tag;
@@ -219,7 +266,8 @@ class MarkdownBuilder implements md.NodeVisitor {
     final outerElement = elements[1];
 
     if (_isBlockTag(tag)) {
-      _addAnonymousBlockIfNeeded(styleSheet.styles[tag]);
+      final isInlineBlock = _isInlineBlock(tag, outerElement.tag);
+      _addAnonymousBlockIfNeeded(styleSheet.styles[tag], isInlineBlock);
 
       final _BlockElement current = _blocks.removeLast();
       Widget child;
@@ -282,8 +330,17 @@ class MarkdownBuilder implements md.NodeVisitor {
         assert(child != null);
       }
 
-      _addBlockChild(delegate.elementWrapper(tag, outerElement.tag, child));
+      if (isInlineBlock) {
+        _inlineWidgets.add(SelectableText.rich(TextSpan(
+          // we only simulate a P if last one is an inline element
+          text: _inlineWidgets.isNotEmpty && _inlineWidgets.last is SelectableText ? '\n\n' : '\n',
+          style: styleSheet.styles[tag]
+        )));
+      } else {
+        _addBlockChild(delegate.elementWrapper(tag, outerElement.tag, child));
+      }
     } else {
+
       final _InlineElement current = _inlines.removeLast();
       final _InlineElement parent = _inlines.last;
 
@@ -371,22 +428,25 @@ class MarkdownBuilder implements md.NodeVisitor {
     }
   }
 
-  void _addBlockChild(Widget child) {
+  void _addBlockChild(Widget child, [List<Widget> inlineWidgets]) {
     final _BlockElement parent = _blocks.last;
     if (parent.children.isNotEmpty)
       parent.children.add(new SizedBox(height: styleSheet.blockSpacing));
     parent.children.add(child);
+    if (inlineWidgets != null)
+      parent.inlineWidgets.addAll(inlineWidgets);
     parent.nextListIndex += 1;
   }
 
-  void _addAnonymousBlockIfNeeded(TextStyle style) {
+  void _addAnonymousBlockIfNeeded(TextStyle style, [bool keepInlineElements = false]) {
+
     if (_inlines.isEmpty) {
       return;
     }
 
     final _InlineElement inline = _inlines.single;
     if (inline.children.isNotEmpty) {
-      List<Widget> mergedInlines = _mergeInlineChildren(inline);
+      List<Widget> mergedInlines = _mergeInlineChildren(inline, keepInlineElements);
       final Wrap wrap = new Wrap(children: mergedInlines);
       _addBlockChild(wrap);
       _inlines.clear();
@@ -394,7 +454,7 @@ class MarkdownBuilder implements md.NodeVisitor {
   }
 
   /// Merges adjacent [TextSpan] children of the given [_InlineElement]
-  List<Widget> _mergeInlineChildren(_InlineElement inline) {
+  List<Widget> _mergeInlineChildren(_InlineElement inline, [bool keepInlineElements = false]) {
     List<Widget> mergedTexts = <Widget>[];
     for (Widget child in inline.children) {
       if (mergedTexts.isNotEmpty && mergedTexts.last is SelectableText && child is SelectableText) {
@@ -410,6 +470,9 @@ class MarkdownBuilder implements md.NodeVisitor {
         mergedTexts.add(child);
       }
     }
+
+    if (keepInlineElements)
+      _inlineWidgets.addAll(mergedTexts);
     return mergedTexts;
   }
 }
