@@ -148,10 +148,12 @@ class _SelectableTextSelectionGestureDetectorBuilder extends TextSelectionGestur
     if (delegate.selectionEnabled) {
       switch (Theme.of(_state.context).platform) {
         case TargetPlatform.iOS:
-          renderEditable.selectPositionAt(
-            from: details.globalPosition,
-            cause: SelectionChangedCause.longPress,
-          );
+          // iOS by default select the word
+          renderEditable.selectWord(cause: SelectionChangedCause.longPress);
+//          renderEditable.selectPositionAt(
+//            from: details.globalPosition,
+//            cause: SelectionChangedCause.longPress,
+//          );
           break;
         case TargetPlatform.android:
         case TargetPlatform.fuchsia:
