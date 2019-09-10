@@ -44,7 +44,7 @@ typedef Widget ImageBuilder(String url, double width, double height);
 typedef Widget TableBuilder(md.Element tableElement);
 
 /// Provides a chance to wrap a inline style for tag.
-typedef TextStyle MarkdownInlineStyleWrapper(String tag, TextStyle style);
+typedef TextStyle MarkdownInlineStyleWrapper(String tag, TextStyle style, Map<String, String> attributes);
 
 /// A base class for widgets that parse and display Markdown.
 ///
@@ -231,8 +231,8 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
   }
 
   @override
-  TextStyle inlineStyleWrapper(String tag, TextStyle style) {
-    return widget.inlineStyleWrapper != null ? widget.inlineStyleWrapper(tag, style) : null;
+  TextStyle inlineStyleWrapper(String tag, TextStyle style, Map<String, String> attributes) {
+    return widget.inlineStyleWrapper != null ? widget.inlineStyleWrapper(tag, style, attributes) : null;
   }
 }
 
