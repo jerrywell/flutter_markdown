@@ -255,8 +255,13 @@ class MarkdownBuilder implements md.NodeVisitor {
     return <_BlockElement>[innerTag, outerTag];
   }
 
+  static const Set<String> _skipInlineBlockMerged = {
+    'blockquote',
+    'ol'//#9410
+  };
+
   bool _isInlineBlock(String elementTag, [String outerElementTag]) {
-    return _inlineBlockTags.contains(elementTag) && (outerElementTag == null || outerElementTag != 'blockquote');
+    return _inlineBlockTags.contains(elementTag) && (outerElementTag == null || !_skipInlineBlockMerged.contains(outerElementTag));
   }
 
   @override
