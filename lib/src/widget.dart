@@ -32,7 +32,7 @@ typedef List<md.Node> MarkdownTextParser(String data);
 typedef TextSpan MarkdownTextProcessor(String last, String lastSecond, TextStyle style, String text, GestureRecognizer recognizer);
 
 /// Provides a chance to post process text content.
-typedef Widget MarkdownElementWrapper(String previousTag, String currentTag, Widget child);
+typedef Widget MarkdownElementWrapper(md.Element innerElement, String currentTag, Widget child);
 
 /// Provides a chance to use custom checklist widget.
 typedef Widget ChecklistBuilder(md.Element liElement);
@@ -208,8 +208,8 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
   }
 
   @override
-  Widget elementWrapper(String innerTag, String outerTag, Widget child) {
-    return widget.elementWrapper != null ? widget.elementWrapper(innerTag, outerTag, child) : new Container(child: child);
+  Widget elementWrapper(md.Element innerElement, String outerTag, Widget child) {
+    return widget.elementWrapper != null ? widget.elementWrapper(innerElement, outerTag, child) : new Container(child: child);
   }
 
   @override

@@ -26,7 +26,8 @@ final Set<String> _kBlockTags = new Set<String>.from(<String>[
   'ol',
   'ul',
   'hr',
-  'table'
+  'table',
+  'video'
 ]);
 
 final Set<String> _inlineBlockTags = <String> {
@@ -37,6 +38,7 @@ final Set<String> _inlineBlockTags = <String> {
   'h4',
   'h5',
   'h6',
+  'video'
 };
 
 const List<String> _kListTags = const <String>['ul', 'ol'];
@@ -93,7 +95,7 @@ abstract class MarkdownBuilderDelegate {
   TextSpan textProcess(String innerTag, String outerTag, TextStyle style, String text, GestureRecognizer recognizer);
 
   /// Give a chance to add a wrapper of child
-  Widget elementWrapper(String innerTag, String outerTag, Widget child);
+  Widget elementWrapper(md.Element innerElement, String outerTag, Widget child);
 
   /// called to return the custom checklist item
   Widget buildChecklist(md.Element liElement);
@@ -235,6 +237,20 @@ class MarkdownBuilder implements md.NodeVisitor {
 
     if (tag == 'a') {
       _linkHandlers.add(delegate.createLink(element.attributes['href']));
+    } else if (tag == 'iframe') {
+      final text = element.attributes['src'];
+      final TextSpan span = delegate.textProcess('', '', styleSheet.styles['a'], text, delegate.createLink(text));
+
+      _inlines.last.children.add(SelectableText.rich(
+        span
+      ));
+    } else if (tag == 'source' && _blocks.isNotEmpty && _blocks.last.tag == 'video') {
+      final text = element.attributes['src'];
+      final TextSpan span = delegate.textProcess('', '', styleSheet.styles['a'], text, delegate.createLink(text));
+
+      _inlines.last.children.add(SelectableText.rich(
+          span
+      ));
     }
 
     if (element.isEmpty) {
@@ -342,7 +358,7 @@ class MarkdownBuilder implements md.NodeVisitor {
           style: styleSheet.styles[tag]
         )));
       } else {
-        _addBlockChild(delegate.elementWrapper(tag, outerElement.tag, child));
+        _addBlockChild(delegate.elementWrapper(element, outerElement.tag, child));
       }
     } else {
 
