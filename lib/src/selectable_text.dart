@@ -28,7 +28,7 @@ class _TextSpanEditingController extends TextEditingController {
   final TextSpan _textSpan;
 
   @override
-  TextSpan buildTextSpan({TextStyle style ,bool withComposing}) {
+  TextSpan buildTextSpan({BuildContext context, TextStyle style, bool withComposing}) {
     // TODO(chunhtai): Implement composing.
     return TextSpan(
       style: style,
