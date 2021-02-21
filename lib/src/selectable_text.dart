@@ -561,6 +561,7 @@ class _SelectableTextState extends State<SelectableText> with AutomaticKeepAlive
     Radius cursorRadius = widget.cursorRadius;
 
     switch (themeData.platform) {
+      case TargetPlatform.macOS:
       case TargetPlatform.iOS:
         forcePressEnabled = true;
         textSelectionControls = cupertinoTextSelectionControls;
