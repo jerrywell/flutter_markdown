@@ -73,7 +73,8 @@ abstract class MarkdownWidget extends StatefulWidget {
     this.buildChecklist,
     this.buildImage,
     this.buildTable,
-    this.inlineStyleWrapper
+    this.inlineStyleWrapper,
+    this.wrapAlignment
   }) : assert(data != null),
        super(key: key);
 
@@ -115,6 +116,8 @@ abstract class MarkdownWidget extends StatefulWidget {
 
   /// Called to return the custom style for a inline tag
   final MarkdownInlineStyleWrapper inlineStyleWrapper;
+
+  final WrapAlignment wrapAlignment;
 
   /// Subclasses should override this function to display the given children,
   /// which are the parsed representation of [data].
@@ -234,6 +237,9 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
   TextStyle inlineStyleWrapper(String tag, TextStyle style, Map<String, String> attributes) {
     return widget.inlineStyleWrapper != null ? widget.inlineStyleWrapper(tag, style, attributes) : null;
   }
+
+  @override
+  WrapAlignment get wrapAlignment => widget.wrapAlignment;
 }
 
 /// A non-scrolling widget that parses and displays Markdown.
@@ -261,6 +267,7 @@ class MarkdownBody extends MarkdownWidget {
     ImageBuilder buildImage,
     TableBuilder buildTable,
     MarkdownInlineStyleWrapper inlineStyleWrapper,
+    WrapAlignment wrapAlignment
   }) : super(
     key: key,
     data: data,
@@ -274,7 +281,8 @@ class MarkdownBody extends MarkdownWidget {
     buildChecklist: buildChecklist,
     buildImage: buildImage,
     buildTable: buildTable,
-    inlineStyleWrapper: inlineStyleWrapper
+    inlineStyleWrapper: inlineStyleWrapper,
+    wrapAlignment: wrapAlignment
   );
 
   @override

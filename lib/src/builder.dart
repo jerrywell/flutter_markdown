@@ -108,6 +108,8 @@ abstract class MarkdownBuilderDelegate {
 
   /// Give a chance to add a wrapper of style for inline tag
   TextStyle inlineStyleWrapper(String tag, TextStyle style, Map<String, String> attributes);
+
+  WrapAlignment get wrapAlignment;
 }
 
 /// Builds a [Widget] tree from parsed Markdown.
@@ -204,7 +206,7 @@ class MarkdownBuilder implements md.NodeVisitor {
       _inlineWidgets.clear();
 
 
-      final Wrap wrap = new Wrap(children: mergedTexts);
+      final Wrap wrap = new Wrap(children: mergedTexts, alignment: delegate.wrapAlignment ?? WrapAlignment.start);
       _addBlockChild(wrap);
     }
   }
