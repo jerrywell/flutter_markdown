@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:markd/markdown.dart' as md;
 import 'package:meta/meta.dart';
 
@@ -185,12 +186,19 @@ class _MarkdownWidgetState extends State<MarkdownWidget> implements MarkdownBuil
       recognizer.dispose();
   }
 
+  String _handlingLink;
   @override
   GestureRecognizer createLink(String href) {
     final TapGestureRecognizer recognizer = new TapGestureRecognizer()
       ..onTap = () {
-      if (widget.onTapLink != null)
+      if (widget.onTapLink != null && _handlingLink != href) {
+        _handlingLink = href;
         widget.onTapLink(href);
+        //fix same link trigger from hit test
+        SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+          _handlingLink = null;
+        });
+      }
     };
     _recognizers.add(recognizer);
     return recognizer;
